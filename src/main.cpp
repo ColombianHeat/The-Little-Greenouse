@@ -210,30 +210,26 @@ void loop() {
   Serial.println(F("F"));
 
   
-lcd.clear();
+  lcd.clear();
 
-   lcd.print("Temperature:");
-   lcd.setCursor(0,1);//set the cursor on the second row and first column
+   lcd.print("TEMP:");
+   lcd.setCursor(5,0); // 6th column, 1st row
    lcd.print((float)dht.readTemperature(),0);//print the temperature
-   lcd.print("C");
-   delay(1000);
-   lcd.clear();
-   lcd.print("Humidity:");
-   lcd.setCursor(0,1);//set the cursor on the second row and first column
-   lcd.print((float)dht.readHumidity(),0);//print the humidity
+   lcd.setCursor(7,0); // 8th column, 1st row
+   lcd.print("C HUM:");
+   lcd.setCursor(13,0); // 14th column, 1st row
+   lcd.print((float)dht.readHumidity(),0); // print the humidity
+   lcd.setCursor(15,0); // 16th column, 1st row
    lcd.print("%");
-   delay(1000);
-   lcd.clear();
-   lcd.print("Moisture level:");
-      lcd.setCursor(0,1);//set the cursor on the second row and first column
-lcd.print((sensorValue),0);
-   delay(1000);
-   lcd.clear();
-      lcd.print("Water level:");
-         lcd.setCursor(0,1);//set the cursor on the second row and first column
-lcd.print(level);
-   delay(1000);
-   lcd.clear();
+
+   lcd.setCursor(0,1); // 1st column, 2nd row
+   lcd.print("MOIS:"); 
+   lcd.setCursor(5,1); // 6th column, 2nd row
+   lcd.print(100 - (((sensorValue) - 400)/450*100),0);
+   lcd.setCursor(7,1);
+   lcd.print("% H20:");
+   lcd.print((level)/535*100);
+   delay(300);
 
   waterPump(); // calls for water pump function which will activate the pump when needed 
   growLight(); // calls for grow light function
