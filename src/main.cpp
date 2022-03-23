@@ -53,7 +53,7 @@ int readSensor() {
 
 void waterPump(){  // this function determines when to turn on the water pump
   if (millis() - previousWaterMillis >= wateringInterval) {
-    if (sensorValue<=lowMoisture) {
+    if (sensorValue >= lowMoisture) {
       previousWaterMillis = millis();
       
       if (pumpState == LOW) {
