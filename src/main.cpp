@@ -21,8 +21,8 @@ int plantMode = 0;
 
 // constants used for operation of the water pump
 const int pumpPin = 13;
-unsigned long wateringInterval = 10000; //how long to wait until checking whether or not to water (default 12 hours or 43,200,000 ms)
-unsigned long pumpActivationLength = 6000; // when activated, the pump will turn on for this much time
+unsigned long wateringInterval = 4000; //how long to wait until checking whether or not to water (default 12 hours or 43,200,000 ms)
+unsigned long pumpActivationLength = 800; // when activated, the pump will turn on for this much time
 int pumpState = LOW; // determines whether pump is on or off
 int lowMoisture = 630; // below this threshold, the pump will activate when it reaches the end of the watering interval
 //unsigned long currentWaterMillis = millis();
@@ -30,15 +30,15 @@ unsigned long previousWaterMillis = 0; // stores how long it's been since checki
 
 // constants used for operation of the grow light
 const int lightPin = 10;
-unsigned long lightInterval = 24000; // Period of the grow light cycle (default 24 hours or 86,400,000 ms)
-unsigned long lightActivationLength = 8000; // how long to leave the light on per period (default 10 hours or 36,000,000 ms)
+unsigned long lightInterval = 5000; // Period of the grow light cycle (default 24 hours or 86,400,000 ms)
+unsigned long lightActivationLength = 2000; // how long to leave the light on per period (default 10 hours or 36,000,000 ms)
 int lightState = HIGH; // determines whether the light is on or off
 unsigned long previousLightMillis = 0; // used to keep time, which will determine when the light will turn on/off
 
 // constants used for operation of the fan
 const int fanPin = 9;
-unsigned long fanInterval = 12000; // Period of the fan cycle (default 120 minutes or 7,200,000 ms)
-unsigned long fanActivationLength = 6000; // how long to leave the fan on per period (default 60 minutes or 3,600,000 ms)
+unsigned long fanInterval = 6000; // Period of the fan cycle (default 120 minutes or 7,200,000 ms)
+unsigned long fanActivationLength = 3000; // how long to leave the fan on per period (default 60 minutes or 3,600,000 ms)
 int fanState = HIGH; // determines whether fan is on or off
 unsigned long previousFanMillis = 0; // used to keep time, which will determine when the fan will turn on/off
 
@@ -53,7 +53,7 @@ int readSensor() {
 
 void waterPump(){  // this function determines when to turn on the water pump
   if (millis() - previousWaterMillis >= wateringInterval) {
-    //if (sensorValue<=lowMoisture) {
+    if (sensorValue<=lowMoisture) {
       previousWaterMillis = millis();
       
       if (pumpState == LOW) {
@@ -70,9 +70,10 @@ void waterPump(){  // this function determines when to turn on the water pump
     Serial.println(millis());
     digitalWrite(pumpPin, pumpState);
   }
-      //}
+      }
   }
 }
+
 
 // note to self: the light will be OFF for the first full light cycle, then it will begin to cycle properly
 void growLight() {  // this function determines when to turn on/off the grow light
@@ -125,15 +126,15 @@ void setup() {
 void loop() {
   if (strcmp(plantModeArray[plantMode], "Tomato") == 0) {
     Serial.println("TOMATO MODE ENGAGED");
-    wateringInterval = 10000;
-    pumpActivationLength = 6000;
-    lowMoisture = 630; // Maybe this can be the same for all modes??
+    wateringInterval = 6000;
+    pumpActivationLength = 900;
+    lowMoisture = 700; // Maybe this can be the same for all modes??
 
-    lightInterval = 24000;
-    lightActivationLength = 6000;
+    lightInterval = 6000;
+    lightActivationLength = 2000;
 
-    fanInterval = 12000;
-    fanActivationLength = 6000;
+    fanInterval = 7000;
+    fanActivationLength = 3500;
   }
   else if (strcmp(plantModeArray[plantMode], "Cherry") == 0) {
     Serial.println("CHERRY MODE ENGAGED");
