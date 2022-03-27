@@ -236,12 +236,12 @@ void loop() {
     pumpActivationLength = 6000;
     lowMoisture = 630; // Maybe this can be the same for all modes??
 
-    if ((waterLevelAlarm == LOW) && (lightCommand == LOW) && ( (RTChour > 7) && (RTChour < 17) )) {
-      lightCommand = HIGH; // Light on between 8:00 am and 4:59 pm
+    if ((waterLevelAlarm == LOW) && (lightCommand == LOW) && ( (RTChour > 6) && (RTChour < 22) )) {
+      lightCommand = HIGH; // Light on between 7:00 am and 9:59 pm
     }
 
-    if ((waterLevelAlarm == LOW) && (lightCommand == HIGH) && ( (RTChour > 16) | (RTChour < 8) )) {
-      lightCommand = LOW; // Light off between 5:00 pm and 7:59 am
+    if ((waterLevelAlarm == LOW) && (lightCommand == HIGH) && ( (RTChour > 21) | (RTChour < 7) )) {
+      lightCommand = LOW; // Light off between 10:00 pm and 6:59 am
     }
 
     if (waterLevelAlarm == HIGH) {
@@ -249,14 +249,15 @@ void loop() {
       lightActivationLength = 1000;
     }
 
-    if ((fanCommand == LOW) && ( (RTChour > 7) && (RTChour < 19) )) {
-      fanCommand = HIGH; // Fan on between 8:00 am and 6:59 pm
+    if ((fanCommand == LOW) && ( (RTChour > 6) && (RTChour <= 23) )) {
+      fanCommand = HIGH; // Fan on between 7:00 am and 11:59 pm
     }
 
-    if ((fanCommand == HIGH) && ( (RTChour > 18) | (RTChour < 8) )) {
-      fanCommand = LOW; // Fan off between 7:00 pm and 7:59 am
+    if ((fanCommand == HIGH) && ( (RTChour >= 0) | (RTChour < 7) )) {
+      fanCommand = LOW; // Fan off between 12:00 am and 6:59 am
     }
   }
+  
   else if (strcmp(plantModeArray[plantMode], "Grape") == 0) {
     Serial.println("GRAPE MODE ENGAGED");
     wateringInterval = 10000;
