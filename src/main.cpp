@@ -24,7 +24,7 @@ RTC_DS3231 rtc;
 const char *plantModeArray[] = {"Tomato", "Cherry", "Grape"};
 int plantMode = 0;
 
-int level = 0; // Water level variable
+float level = 0; // Water level variable
 
 // constants used for operation of the water pump
 const int pumpPin = 13;
@@ -62,7 +62,7 @@ int readWaterLevel() {
 }
 
 void waterPump(){  // this function determines when to turn on the water pump
-  if (level < 150) {
+  if (level < 150.0) {
     waterLevelAlarm = HIGH;
     return;
   }
@@ -373,10 +373,15 @@ void loop() {
     lcd.print(100 - (((moistureSensorValue) - 400)/450*100),0);
     lcd.setCursor(7,1);
     lcd.print(" H20:");
-    lcd.print((level)/535*100);
+    if (waterLevelAlarm == HIGH){
+      lcd.print("LOW");
+    }
+    else {
+      lcd.print((level)/535*100);
+    }
     delay(200);
 
-  if ((waterLevelAlarm == HIGH) && (level > 200)) {
+  if ((waterLevelAlarm == HIGH) && (level > 200.0)) {
     waterLevelAlarm = LOW;
   }
 
