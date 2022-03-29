@@ -30,7 +30,7 @@ float level = 0; // Water level variable
 const int pumpPin = 13;
 unsigned long wateringInterval = 5000; //how long to wait until checking whether or not to water (default 12 hours or 43,200,000 ms)
 unsigned long pumpActivationLength = 1000; // when activated, the pump will turn on for this much time
-int pumpState = LOW; // determines whether pump is on or off
+int pumpState = digitalRead(pumpPin); // determines whether pump is on or off
 int lowMoisture = 630; // below this threshold, the pump will activate when it reaches the end of the watering interval
 //unsigned long currentWaterMillis = millis();
 unsigned long previousWaterMillis = 0; // stores how long it's been since checking moisture levels for watering purposes
@@ -41,7 +41,7 @@ const int lightPin = 10;
 int lightCommand = LOW;
 unsigned long lightInterval = 4000; // Period of the grow light cycle (default 24 hours or 86,400,000 ms)
 unsigned long lightActivationLength = 1000; // how long to leave the light on per period (default 10 hours or 36,000,000 ms)
-int lightState = HIGH; // determines whether the light is on or off
+int lightState = digitalRead(lightPin); // determines whether the light is on or off
 unsigned long previousLightMillis = 0; // used to keep time, which will determine when the light will turn on/off
 
 // constants used for operation of the fan
@@ -49,7 +49,7 @@ const int fanPin = 9;
 int fanCommand = LOW;
 unsigned long fanInterval = 6000; // Period of the fan cycle (default 120 minutes or 7,200,000 ms)
 unsigned long fanActivationLength = 3000; // how long to leave the fan on per period (default 60 minutes or 3,600,000 ms)
-int fanState = HIGH; // determines whether fan is on or off
+int fanState = digitalRead(fanPin); // determines whether fan is on or off
 unsigned long previousFanMillis = 0; // used to keep time, which will determine when the fan will turn on/off
 
 
@@ -71,21 +71,15 @@ void waterPump(){  // this function determines when to turn on the water pump
     //if (moistureSensorValue<=lowMoisture) {
       previousWaterMillis = millis();
       
-      if (pumpState == LOW) {
-      pumpState = HIGH;         // turn pump on if soil moisture is below threshold
-      }
   Serial.print("PUMP ON: ");
   Serial.println(millis());
-  digitalWrite(pumpPin, pumpState);
+  digitalWrite(pumpPin, !digitalRead(pumpPin)); // turn pump on if soil moisture is below threshold
   delay(pumpActivationLength);  // if pump was turned on by the function, wait and turn it off
 
-  if (pumpState == HIGH) {
-    pumpState = LOW;
-    Serial.print("PUMP OFF: ");
-    Serial.println(millis());
-    digitalWrite(pumpPin, pumpState);
-  }
-      //}
+  Serial.print("PUMP OFF: ");
+  Serial.println(millis());
+  digitalWrite(pumpPin, !digitalRead(pumpPin));
+    //}
   }
 }
 
@@ -93,12 +87,12 @@ void growLight() {
   if (lightCommand == HIGH && lightState == LOW) {
     lightState = HIGH;
     Serial.println("GROW LIGHT ON");
-    digitalWrite(lightPin, lightState);
+    digitalWrite(lightPin, !digitalRead(lightPin));
   }
   else if (lightCommand == LOW && lightState == HIGH) {
     lightState = LOW;
     Serial.println("GROW LIGHT OFF");
-    digitalWrite(lightPin, lightState);
+    digitalWrite(lightPin, !digitalRead(lightPin));
   }
 }
 
@@ -122,12 +116,12 @@ void fan(){  // this function determines when to turn on/off the fan
   if (fanCommand == HIGH && fanState == LOW) {
     fanState = HIGH;         // turn fan on if it was off
     Serial.println("FAN ON");
-    digitalWrite(fanPin, fanState);
+    digitalWrite(fanPin, !digitalRead(fanPin));
   }
   else if (fanCommand == LOW && fanState == HIGH) {
     fanState = LOW; // turn fan off if it was on
     Serial.println("FAN OFF");
-    digitalWrite(fanPin, fanState);
+    digitalWrite(fanPin, !digitalRead(fanPin));
   }
 }
 
@@ -203,8 +197,8 @@ void loop() {
   // Selecting the current mode. Different modes have different timings for the output devices
   if (strcmp(plantModeArray[plantMode], "Tomato") == 0) {
     Serial.println("TOMATO MODE ENGAGED");
-    wateringInterval = 4000;
-    pumpActivationLength = 2000;
+    wateringInterval = 10000;
+    pumpActivationLength = 2500;
     lowMoisture = 630; // Maybe this can be the same for all modes??
 
     if ((waterLevelAlarm == LOW) && (lightCommand == LOW) && ( ((RTCsecond >= 0) && (RTCsecond <= 4)) | ((RTCsecond >= 10) && (RTCsecond <= 14)) | ((RTCsecond >= 20) && (RTCsecond <= 24)) | ((RTCsecond >= 30) && (RTCsecond <= 34)) | ((RTCsecond >= 40) && (RTCsecond <= 44)) | ((RTCsecond >= 50) && (RTCsecond <= 54)) )) {
@@ -213,11 +207,6 @@ void loop() {
 
     if (waterLevelAlarm == LOW && (lightCommand == HIGH) && ( ((RTCsecond >= 5) && (RTCsecond <= 9)) | ((RTCsecond >= 15) && (RTCsecond <= 19)) | ((RTCsecond >= 25) && (RTCsecond <= 29)) | ((RTCsecond >= 35) && (RTCsecond <= 39)) | ((RTCsecond >= 45) && (RTCsecond <= 49)) | ((RTCsecond >= 55) && (RTCsecond <= 59)) )) {
       lightCommand = LOW; // Light off every 10 seconds
-    }
-
-    if (waterLevelAlarm == HIGH) { // THIS NEEDS TO BE REPLACED. THESE VARIABLES WERE TAKEN OUT OF THE GROW LIGHT FUNCTION.
-      lightInterval = 2000;
-      lightActivationLength = 1000;
     }
 
     if ((fanCommand == LOW) && ( ((RTCsecond >= 0) && (RTCsecond <= 4)) | ((RTCsecond >= 10) && (RTCsecond <= 14)) | ((RTCsecond >= 20) && (RTCsecond <= 24)) | ((RTCsecond >= 30) && (RTCsecond <= 34)) | ((RTCsecond >= 40) && (RTCsecond <= 44)) | ((RTCsecond >= 50) && (RTCsecond <= 54)) )) {
@@ -232,8 +221,8 @@ void loop() {
 
   else if (strcmp(plantModeArray[plantMode], "Cherry") == 0) {
     Serial.println("CHERRY MODE ENGAGED");
-    wateringInterval = 10000;
-    pumpActivationLength = 6000;
+    wateringInterval = 43200000;
+    pumpActivationLength = 1000;
     lowMoisture = 630; // Maybe this can be the same for all modes??
 
     if ((waterLevelAlarm == LOW) && (lightCommand == LOW) && ( (RTChour > 6) && (RTChour < 22) )) {
@@ -244,16 +233,11 @@ void loop() {
       lightCommand = LOW; // Light off between 10:00 pm and 6:59 am
     }
 
-    if (waterLevelAlarm == HIGH) {
-      lightInterval = 2000;
-      lightActivationLength = 1000;
-    }
-
     if ((fanCommand == LOW) && ( (RTChour > 6) && (RTChour <= 23) )) {
       fanCommand = HIGH; // Fan on between 7:00 am and 11:59 pm
     }
 
-    if ((fanCommand == HIGH) && ( (RTChour >= 0) | (RTChour < 7) )) {
+    if ((fanCommand == HIGH) && ( (RTChour >= 0) && (RTChour < 7) )) {
       fanCommand = LOW; // Fan off between 12:00 am and 6:59 am
     }
   }
@@ -352,7 +336,11 @@ void loop() {
   Serial.print(hic);
   Serial.print(F("C "));
   Serial.print(hif);
-  Serial.println(F("F"));
+  Serial.println(F("F")); 
+  Serial.print("FAN: ");
+  Serial.println(digitalRead(fanPin));
+  Serial.print("LIGHT: ");
+  Serial.println(digitalRead(lightPin));
 
   // Clears and prints sensor values to LCD
   lcd.clear();
