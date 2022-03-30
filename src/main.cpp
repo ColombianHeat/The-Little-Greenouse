@@ -21,7 +21,7 @@ LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
 
 RTC_DS3231 rtc;
 
-const char *plantModeArray[] = {"Tomato", "Cherry", "Grape"};
+const char *plantModeArray[] = {"Tomato", "Peas", "Grape"};
 int plantMode = 0;
 
 float level = 0; // Water level variable
@@ -68,18 +68,18 @@ void waterPump(){  // this function determines when to turn on the water pump
   }
 
   if (millis() - previousWaterMillis >= wateringInterval) {
-    //if (moistureSensorValue<=lowMoisture) {
+    // if (moistureSensorValue <= lowMoisture) {
       previousWaterMillis = millis();
       
-  Serial.print("PUMP ON: ");
-  Serial.println(millis());
-  digitalWrite(pumpPin, !digitalRead(pumpPin)); // turn pump on if soil moisture is below threshold
-  delay(pumpActivationLength);  // if pump was turned on by the function, wait and turn it off
+      Serial.print("PUMP ON: ");
+      Serial.println(millis());
+      digitalWrite(pumpPin, !digitalRead(pumpPin)); // turn pump on if soil moisture is below threshold
+      delay(pumpActivationLength);  // if pump was turned on by the function, wait and turn it off
 
-  Serial.print("PUMP OFF: ");
-  Serial.println(millis());
-  digitalWrite(pumpPin, !digitalRead(pumpPin));
-    //}
+      Serial.print("PUMP OFF: ");
+      Serial.println(millis());
+      digitalWrite(pumpPin, !digitalRead(pumpPin));
+    // }
   }
 }
 
@@ -95,22 +95,6 @@ void growLight() {
     digitalWrite(lightPin, !digitalRead(lightPin));
   }
 }
-
-// void growLight() {  // this function determines when to turn on/off the grow light   // Keeping this in the back pocket just in case
-//   if (millis() - previousLightMillis >= lightInterval && lightState == LOW) {
-//     previousLightMillis = millis();
-//     lightState = HIGH;         // turn light on if it was off
-//     Serial.print("GROW LIGHT ON: ");
-//     Serial.println(millis());
-//     digitalWrite(lightPin, lightState);
-//   }
-//   else if (millis() - previousLightMillis >= lightActivationLength && lightState == HIGH) {
-//     lightState = LOW; 
-//     Serial.print("GROW LIGHT OFF: ");
-//     Serial.println(millis());
-//     digitalWrite(lightPin, lightState);
-//   }
-// }
 
 void fan(){  // this function determines when to turn on/off the fan
   if (fanCommand == HIGH && fanState == LOW) {
@@ -197,15 +181,15 @@ void loop() {
   // Selecting the current mode. Different modes have different timings for the output devices
   if (strcmp(plantModeArray[plantMode], "Tomato") == 0) {
     Serial.println("TOMATO MODE ENGAGED");
-    wateringInterval = 10000;
-    pumpActivationLength = 2500;
-    lowMoisture = 630; // Maybe this can be the same for all modes??
+    wateringInterval = 10000; // 10 seconds
+    pumpActivationLength = 1000;
+    lowMoisture = 630; 
 
-    if ((waterLevelAlarm == LOW) && (lightCommand == LOW) && ( ((RTCsecond >= 0) && (RTCsecond <= 4)) | ((RTCsecond >= 10) && (RTCsecond <= 14)) | ((RTCsecond >= 20) && (RTCsecond <= 24)) | ((RTCsecond >= 30) && (RTCsecond <= 34)) | ((RTCsecond >= 40) && (RTCsecond <= 44)) | ((RTCsecond >= 50) && (RTCsecond <= 54)) )) {
+    if ((lightCommand == LOW) && ( ((RTCsecond >= 0) && (RTCsecond <= 4)) | ((RTCsecond >= 10) && (RTCsecond <= 14)) | ((RTCsecond >= 20) && (RTCsecond <= 24)) | ((RTCsecond >= 30) && (RTCsecond <= 34)) | ((RTCsecond >= 40) && (RTCsecond <= 44)) | ((RTCsecond >= 50) && (RTCsecond <= 54)) )) {
       lightCommand = HIGH; // Light on every 10 seconds
     }
 
-    if (waterLevelAlarm == LOW && (lightCommand == HIGH) && ( ((RTCsecond >= 5) && (RTCsecond <= 9)) | ((RTCsecond >= 15) && (RTCsecond <= 19)) | ((RTCsecond >= 25) && (RTCsecond <= 29)) | ((RTCsecond >= 35) && (RTCsecond <= 39)) | ((RTCsecond >= 45) && (RTCsecond <= 49)) | ((RTCsecond >= 55) && (RTCsecond <= 59)) )) {
+    if ((lightCommand == HIGH) && ( ((RTCsecond >= 5) && (RTCsecond <= 9)) | ((RTCsecond >= 15) && (RTCsecond <= 19)) | ((RTCsecond >= 25) && (RTCsecond <= 29)) | ((RTCsecond >= 35) && (RTCsecond <= 39)) | ((RTCsecond >= 45) && (RTCsecond <= 49)) | ((RTCsecond >= 55) && (RTCsecond <= 59)) )) {
       lightCommand = LOW; // Light off every 10 seconds
     }
 
@@ -219,17 +203,17 @@ void loop() {
     
   }
 
-  else if (strcmp(plantModeArray[plantMode], "Cherry") == 0) {
-    Serial.println("CHERRY MODE ENGAGED");
-    wateringInterval = 43200000;
+  else if (strcmp(plantModeArray[plantMode], "Peas") == 0) {
+    Serial.println("PEA MODE ENGAGED");
+    wateringInterval = 43200000;  // 12 hours
     pumpActivationLength = 1000;
-    lowMoisture = 630; // Maybe this can be the same for all modes??
+    lowMoisture = 600; // 400 is dry, 850 is wet
 
-    if ((waterLevelAlarm == LOW) && (lightCommand == LOW) && ( (RTChour > 6) && (RTChour < 22) )) {
+    if ((lightCommand == LOW) && ( (RTChour > 6) && (RTChour < 22) )) {
       lightCommand = HIGH; // Light on between 7:00 am and 9:59 pm
     }
 
-    if ((waterLevelAlarm == LOW) && (lightCommand == HIGH) && ( (RTChour > 21) | (RTChour < 7) )) {
+    if ((lightCommand == HIGH) && ( (RTChour > 21) | (RTChour < 7) )) {
       lightCommand = LOW; // Light off between 10:00 pm and 6:59 am
     }
 
@@ -244,15 +228,15 @@ void loop() {
   
   else if (strcmp(plantModeArray[plantMode], "Grape") == 0) {
     Serial.println("GRAPE MODE ENGAGED");
-    wateringInterval = 10000;
-    pumpActivationLength = 6000;
-    lowMoisture = 630; // Maybe this can be the same for all modes??
+    wateringInterval = 129600000; // 48 hours
+    pumpActivationLength = 1500;
+    lowMoisture = 800; // 400 is dry, 850 is wet
 
-    if ((waterLevelAlarm == LOW) && (lightCommand == LOW) && ( (RTChour > 7) && (RTChour < 17) )) {
+    if ((lightCommand == LOW) && ( (RTChour > 7) && (RTChour < 17) )) {
       lightCommand = HIGH; //Light on between 8:00 am and 4:59 pm
     }
 
-    if ((waterLevelAlarm == LOW) && (lightCommand == HIGH) && ( (RTChour > 16) | (RTChour < 8) )) {
+    if ((lightCommand == HIGH) && ( (RTChour > 16) | (RTChour < 8) )) {
       lightCommand = LOW; // Light off between 5:00 pm and 7:59 am
     }
 
