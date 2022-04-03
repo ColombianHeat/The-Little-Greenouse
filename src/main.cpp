@@ -15,14 +15,16 @@
 
 float moistureSensorValue = 0; 
 int val = 0;
+
 DHT dht(DHTPIN, DHTTYPE);
+
 const int rs = 12, en = 11, d4 = 5, d5 = 4, d6 = 3, d7 = 8;
 LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
 
 RTC_DS3231 rtc;
 
 const char *plantModeArray[] = {"Tomato", "Peas", "Grape"};
-int plantMode = 0;
+int plantMode = 1;
 
 float level = 0; // Water level variable
 
@@ -41,7 +43,7 @@ const int lightPin = 10;
 int lightCommand = LOW;
 unsigned long lightInterval = 4000; // Period of the grow light cycle (default 24 hours or 86,400,000 ms)
 unsigned long lightActivationLength = 1000; // how long to leave the light on per period (default 10 hours or 36,000,000 ms)
-int lightState = digitalRead(lightPin); // determines whether the light is on or off
+int lightState = LOW; // determines whether the light is on or off
 unsigned long previousLightMillis = 0; // used to keep time, which will determine when the light will turn on/off
 
 // constants used for operation of the fan
@@ -49,7 +51,7 @@ const int fanPin = 9;
 int fanCommand = LOW;
 unsigned long fanInterval = 6000; // Period of the fan cycle (default 120 minutes or 7,200,000 ms)
 unsigned long fanActivationLength = 3000; // how long to leave the fan on per period (default 60 minutes or 3,600,000 ms)
-int fanState = digitalRead(fanPin); // determines whether fan is on or off
+int fanState = LOW; // determines whether fan is on or off
 unsigned long previousFanMillis = 0; // used to keep time, which will determine when the fan will turn on/off
 
 
@@ -62,13 +64,13 @@ int readWaterLevel() {
 }
 
 void waterPump(){  // this function determines when to turn on the water pump
-  if (level < 150.0) {
+  if (level < 200.0) {
     waterLevelAlarm = HIGH;
     return;
   }
 
   if (millis() - previousWaterMillis >= wateringInterval) {
-    // if (moistureSensorValue <= lowMoisture) {
+    if (moistureSensorValue <= lowMoisture) {
       previousWaterMillis = millis();
       
       Serial.print("PUMP ON: ");
@@ -79,7 +81,7 @@ void waterPump(){  // this function determines when to turn on the water pump
       Serial.print("PUMP OFF: ");
       Serial.println(millis());
       digitalWrite(pumpPin, !digitalRead(pumpPin));
-    // }
+    }
   }
 }
 
@@ -87,12 +89,12 @@ void growLight() {
   if (lightCommand == HIGH && lightState == LOW) {
     lightState = HIGH;
     Serial.println("GROW LIGHT ON");
-    digitalWrite(lightPin, !digitalRead(lightPin));
+    digitalWrite(lightPin, lightState);
   }
   else if (lightCommand == LOW && lightState == HIGH) {
     lightState = LOW;
     Serial.println("GROW LIGHT OFF");
-    digitalWrite(lightPin, !digitalRead(lightPin));
+    digitalWrite(lightPin, lightState);
   }
 }
 
@@ -100,12 +102,12 @@ void fan(){  // this function determines when to turn on/off the fan
   if (fanCommand == HIGH && fanState == LOW) {
     fanState = HIGH;         // turn fan on if it was off
     Serial.println("FAN ON");
-    digitalWrite(fanPin, !digitalRead(fanPin));
+    digitalWrite(fanPin, fanState);
   }
   else if (fanCommand == LOW && fanState == HIGH) {
     fanState = LOW; // turn fan off if it was on
     Serial.println("FAN OFF");
-    digitalWrite(fanPin, !digitalRead(fanPin));
+    digitalWrite(fanPin, fanState);
   }
 }
 
@@ -183,7 +185,7 @@ void loop() {
     Serial.println("TOMATO MODE ENGAGED");
     wateringInterval = 10000; // 10 seconds
     pumpActivationLength = 1000;
-    lowMoisture = 630; 
+    lowMoisture = 10; 
 
     if ((lightCommand == LOW) && ( ((RTCsecond >= 0) && (RTCsecond <= 4)) | ((RTCsecond >= 10) && (RTCsecond <= 14)) | ((RTCsecond >= 20) && (RTCsecond <= 24)) | ((RTCsecond >= 30) && (RTCsecond <= 34)) | ((RTCsecond >= 40) && (RTCsecond <= 44)) | ((RTCsecond >= 50) && (RTCsecond <= 54)) )) {
       lightCommand = HIGH; // Light on every 10 seconds
@@ -207,14 +209,14 @@ void loop() {
     Serial.println("PEA MODE ENGAGED");
     wateringInterval = 43200000;  // 12 hours
     pumpActivationLength = 1000;
-    lowMoisture = 600; // 400 is dry, 850 is wet
+    lowMoisture = 30; 
 
-    if ((lightCommand == LOW) && ( (RTChour > 6) && (RTChour < 22) )) {
-      lightCommand = HIGH; // Light on between 7:00 am and 9:59 pm
+    if ((lightCommand == HIGH) && ( (RTChour > 6) && (RTChour < 22) )) { // lightCommand needs to be inverted for desired behaviour. The wiring acts as NC when it should be NO
+      lightCommand = LOW; // Light on between 7:00 am and 9:59 pm
     }
 
-    if ((lightCommand == HIGH) && ( (RTChour > 21) | (RTChour < 7) )) {
-      lightCommand = LOW; // Light off between 10:00 pm and 6:59 am
+    if ((lightCommand == LOW) && ( (RTChour > 21) | (RTChour < 7) )) { // lightCommand needs to be inverted for desired behaviour. The wiring acts as NC when it should be NO
+      lightCommand = HIGH; // Light off between 10:00 pm and 6:59 am
     }
 
     if ((fanCommand == LOW) && ( (RTChour > 6) && (RTChour <= 23) )) {
@@ -230,14 +232,14 @@ void loop() {
     Serial.println("GRAPE MODE ENGAGED");
     wateringInterval = 129600000; // 48 hours
     pumpActivationLength = 1500;
-    lowMoisture = 800; // 400 is dry, 850 is wet
+    lowMoisture = 15; 
 
-    if ((lightCommand == LOW) && ( (RTChour > 7) && (RTChour < 17) )) {
-      lightCommand = HIGH; //Light on between 8:00 am and 4:59 pm
+    if ((lightCommand == HIGH) && ( (RTChour > 7) && (RTChour < 17) )) { // lightCommand needs to be inverted for desired behaviour. The wiring acts as NC when it should be NO
+      lightCommand = LOW; //Light on between 8:00 am and 4:59 pm
     }
 
-    if ((lightCommand == HIGH) && ( (RTChour > 16) | (RTChour < 8) )) {
-      lightCommand = LOW; // Light off between 5:00 pm and 7:59 am
+    if ((lightCommand == LOW) && ( (RTChour > 16) | (RTChour < 8) )) {// lightCommand needs to be inverted for desired behaviour. The wiring acts as NC when it should be NO
+      lightCommand = HIGH; // Light off between 5:00 pm and 7:59 am
     }
 
     if ((fanCommand == LOW) && ( (RTChour > 7) && (RTChour < 19) )) {
@@ -321,10 +323,8 @@ void loop() {
   Serial.print(F("C "));
   Serial.print(hif);
   Serial.println(F("F")); 
-  Serial.print("FAN: ");
-  Serial.println(digitalRead(fanPin));
-  Serial.print("LIGHT: ");
-  Serial.println(digitalRead(lightPin));
+  Serial.print("LCD pot: ");
+  Serial.println(digitalRead(5));
 
   // Clears and prints sensor values to LCD
   lcd.clear();
@@ -342,18 +342,18 @@ void loop() {
     lcd.setCursor(0,1); // 1st column, 2nd row
     lcd.print("MOIS:"); 
     lcd.setCursor(5,1); // 6th column, 2nd row
-    lcd.print(100 - (((moistureSensorValue) - 400)/450*100),0);
+    lcd.print(((moistureSensorValue) / 70 *100),0); // Normalized to 0-100 scale (min = 0, max = 70)
     lcd.setCursor(7,1);
     lcd.print(" H20:");
     if (waterLevelAlarm == HIGH){
       lcd.print("LOW");
     }
     else {
-      lcd.print((level)/535*100);
+      lcd.print((level)/700*100,0); // Normalized to 0-100 scale (min = 0, max = 700)
     }
     delay(200);
 
-  if ((waterLevelAlarm == HIGH) && (level > 200.0)) {
+  if ((waterLevelAlarm == HIGH) && (level > 500.0)) {
     waterLevelAlarm = LOW;
   }
 
